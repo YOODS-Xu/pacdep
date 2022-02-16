@@ -4,7 +4,6 @@
 
 import os
 import sys
-import numpy as np
 import numpy.random as rd
 
 ALL_DATA_DIR = "allData"
@@ -59,6 +58,9 @@ for i in range(num_of_train_files, num_of_train_files + num_of_test_files):
 for i in range(num_of_train_files + num_of_test_files, num_of_files):
     fold_list[i] = VAL_DIR
 
+#100ファイルの場合、3回シャッフルが効果的
+rd.shuffle(fold_list)
+rd.shuffle(fold_list)
 rd.shuffle(fold_list)
 
 for i in range(num_of_files):
