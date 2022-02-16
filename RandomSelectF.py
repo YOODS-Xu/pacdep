@@ -14,6 +14,7 @@ IMAGE_FILE_EXT = "JPG"
 JSON_FILE_EXT = "json"
 RATIO_TRAIN = 60
 RATIO_TEST = 20
+SHUFFLE_TIMES = 10
 
 CURR_PATH = "./"
 
@@ -58,10 +59,9 @@ for i in range(num_of_train_files, num_of_train_files + num_of_test_files):
 for i in range(num_of_train_files + num_of_test_files, num_of_files):
     fold_list[i] = VAL_DIR
 
-#100ファイルの場合、3回シャッフルが効果的
-rd.shuffle(fold_list)
-rd.shuffle(fold_list)
-rd.shuffle(fold_list)
+for _ in range(SHUFFLE_TIMES):
+    rd.shuffle(fold_list)
+
 
 for i in range(num_of_files):
     file_path_before = CURR_PATH + ALL_DATA_DIR + "/" + file_name_list[i]
