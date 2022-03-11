@@ -1,7 +1,7 @@
 #カラー画像をグレースケール化
 #コマンドラインで指定↓
-#カラーファイルディレクトリ:input_dir(デフォルト:selected_data)
-#グレースケールファイルディレクトリ:output_dir(デフォルト：gray)
+#カラーファイルディレクトリ:input_dir(デフォルト:coco)
+#グレースケールファイルディレクトリ:output_dir(デフォルト：coco_gray)
 #アルゴリズム：cvtcolor(ディフォルト、コマンドラインで指定なしの場合)かdecolor(コマンドラインで--decolor)
 
 import os
@@ -11,7 +11,7 @@ import cv2
 from pathlib import Path
 
 IMAGE_FILE_EXT = "JPG"
-JSON_FILE_EXT = "json"
+#JSON_FILE_EXT = "json"
 
 def check_dir(input_dir):
     """ディレクトリの存在チェック
@@ -24,7 +24,8 @@ def check_dir(input_dir):
     # 変換前ディレクトリの存在をチェック
     dir_list = [ "train", "test" ]
     for dir_name in dir_list:
-        path_name = Path(input_dir).joinpath(dir_name)
+        path_name = Path(input_dir).joinpath(dir_name).joinpath("JPEGImages")
+
         if not path_name.exists():
             raise OSError(2, "No such directory", str(path_name))
         
@@ -45,15 +46,14 @@ def main(input_dir, output_dir, algorithm):
     dir_list = [ "train", "test" ]    
     
     for dir_name in dir_list:
-        input_path_name = Path(input_dir).joinpath(dir_name)
-        output_path_name = Path(output_dir).joinpath(dir_name)
+        input_path_name = Path(input_dir).joinpath(dir_name).joinpath("JPEGImages")
+        output_path_name = Path(output_dir).joinpath(dir_name).joinpath("JPEGImages")
         
         #outputグレースケールファイルディレクトリ作成、既に存在した場合、エラー上げて終了
         Path(output_path_name).mkdir(parents=True, exist_ok=False)
         
         #ファイル一覧取得
-        files = os.listdir(input_path_name)
-        file_name_list = [f for f in files if f[0-len(IMAGE_FILE_EXT):] == IMAGE_FILE_EXT]
+        file_name_list = os.listdir(input_path_name)
 
         for f in file_name_list:
             img = cv2.imread(str(Path(input_path_name).joinpath(f)))
@@ -66,18 +66,19 @@ def main(input_dir, output_dir, algorithm):
                      
             cv2.imwrite(str(Path(output_path_name).joinpath(f)), img_gray)
             
-            #jsonファイルのコピー
-            json_file_name = f.rstrip(IMAGE_FILE_EXT) + JSON_FILE_EXT
-            shutil.copy(Path(input_path_name).joinpath(json_file_name),
-                        Path(output_path_name).joinpath(json_file_name))
+        #Visualizationディレクトのコピー
+        shutil.copytree(Path(input_dir).joinpath(dir_name).joinpath("Visualization"), Path(output_dir).joinpath(dir_name).joinpath("Visualization"))
+
+        #annotations.jsonファイルのコピー
+        shutil.copy(Path(input_dir).joinpath(dir_name).joinpath("annotations.json"), Path(output_dir).joinpath(dir_name).joinpath("annotations.json"))
 
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(
         description='Convert color images to gray scale.',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--input_dir', help='Directory of input color files', default='selected_data', type=str)
-    parser.add_argument('--output_dir', help='Directory of output gray scale files', default='gray', type=str)
+    parser.add_argument('--input_dir', help='Directory of input color files', default='coco', type=str)
+    parser.add_argument('--output_dir', help='Directory of output gray scale files', default='coco_gray', type=str)
     parser.add_argument('--decolor', dest='algorithm', action='store_const',
                         const='decolor', default='cvtcolor',
                         help='alogrithm for conversion:decolor')
@@ -86,11 +87,5 @@ if __name__ == "__main__":
     
     try:
         main(args.input_dir, args.output_dir, args.algorithm)
-    except Exception as e:
-        print(e)
-
-else: 
-    try:
-        main(input_dir='selected_data', output_dir='gray', algorithm='cvtcolor')
     except Exception as e:
         print(e)
