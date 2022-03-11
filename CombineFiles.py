@@ -12,6 +12,9 @@ import glob
 import shutil
 import random as rd
 
+IMAGE_FILE_EXT = "JPG"
+JSON_FILE_EXT = "json"
+
 def main(resource_dir, combination_dir, dataset_img_number):
     """合せメイン
     Args:
@@ -40,7 +43,7 @@ def main(resource_dir, combination_dir, dataset_img_number):
     
     for i in range(dir_num):
         if dir_list[i] != "ADD":
-            file_list = glob.glob(os.path.join(resource_dir, dir_list[i], '*.JPG'))
+            file_list = glob.glob(os.path.join(resource_dir, dir_list[i], '*.' + IMAGE_FILE_EXT))
             file_num = len(file_list)
             
             if file_num >= select_img_num:
@@ -55,31 +58,31 @@ def main(resource_dir, combination_dir, dataset_img_number):
                 #JPGファイルのコピー
                 file_path_before = selected_files[j]
             
-                #ファイル名だけ取出す
-                file_path_after = os.path.join(combination_dir, selected_files[j].lstrip(os.path.join(resource_dir, dir_list[i])))
+                #ファイル名だけ取出して、afterパスに追加
+                file_path_after = os.path.join(combination_dir, os.path.basename(selected_files[j]))
                 shutil.copy(file_path_before, file_path_after)
 
                 #JSONファイルのコピー
-                file_path_before = os.path.join(selected_files[j].rstrip("JPG") + "JSON")
-                file_path_after = os.path.join(combination_dir, selected_files[j].lstrip(os.path.join(resource_dir, dir_list[i])).rstrip("JPG") + "JSON")
+                file_path_before = selected_files[j].replace("." + IMAGE_FILE_EXT , "." + JSON_FILE_EXT)
+                file_path_after = os.path.join(combination_dir, os.path.basename(file_path_before))
                 shutil.copy(file_path_before, file_path_after)
     
     #不足分をADDフォルダから取得
     img_diff_num = dataset_img_number - img_sum_num
     if img_diff_num > 0:
-        file_list = glob.glob(os.path.join(resource_dir, "ADD", '*.JPG'))
+        file_list = glob.glob(os.path.join(resource_dir, "ADD", '*.' + IMAGE_FILE_EXT))
         selected_files = rd.sample(file_list, img_diff_num)
         for j in range(img_diff_num):
             #JPGファイルのコピー
             file_path_before = selected_files[j]
             
-            #ファイル名だけ取出す
-            file_path_after = os.path.join(combination_dir, selected_files[j].lstrip(os.path.join(resource_dir, "ADD")))
+            #ファイル名だけ取出して、afterパスに追加
+            file_path_after = os.path.join(combination_dir, os.path.basename(file_path_before))
             shutil.copy(file_path_before, file_path_after)
 
             #JSONファイルのコピー
-            file_path_before = os.path.join(selected_files[j].rstrip("JPG") + "JSON")
-            file_path_after = os.path.join(combination_dir, selected_files[j].lstrip(os.path.join(resource_dir, "ADD")).rstrip("JPG") + "JSON")
+            file_path_before = selected_files[j].replace("." +IMAGE_FILE_EXT, "." + JSON_FILE_EXT)
+            file_path_after = os.path.join(combination_dir, os.path.basename(file_path_before))
             shutil.copy(file_path_before, file_path_after)
            
 
