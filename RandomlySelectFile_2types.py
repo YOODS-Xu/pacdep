@@ -64,8 +64,8 @@ def main(allData_dir, selected_dir):
         os.replace(file_path_before, file_path_after)
         
         #jsonファイルの移動
-        file_path_before = os.path.join(allData_dir, file_name_list[i].rstrip(IMAGE_FILE_EXT) + JSON_FILE_EXT)
-        file_path_after = os.path.join(selected_dir, fold_list[i], file_name_list[i].rstrip(IMAGE_FILE_EXT) + JSON_FILE_EXT)
+        file_path_before = os.path.join(allData_dir, file_name_list[i].replace("." + IMAGE_FILE_EXT, "." + JSON_FILE_EXT))
+        file_path_after = os.path.join(selected_dir, fold_list[i], file_name_list[i].replace("." + IMAGE_FILE_EXT, "." + JSON_FILE_EXT))
         os.replace(file_path_before, file_path_after)
 
         
@@ -81,11 +81,5 @@ if __name__ == "__main__":
     
     try:
         main(args.allData_dir, args.selected_dir)
-    except Exception as e:
-        print(e)
-
-else: 
-    try:
-        main(allData_dir='allData', selected_dir='selected_data')
     except Exception as e:
         print(e)
