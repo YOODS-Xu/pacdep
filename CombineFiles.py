@@ -7,12 +7,16 @@
 #足りないファイルはresource_dir/ADDから取得（ADDは前準備で一番多いフォルダから一部切出して作成）
 
 import os
+from signal import raise_signal
 import sys
 import glob
 import shutil
 import random as rd
 
-IMAGE_FILE_EXT = "JPG"
+#模擬袋
+#IMAGE_FILE_EXT = "JPG"
+#工場データ
+IMAGE_FILE_EXT = "bmp"
 JSON_FILE_EXT = "json"
 
 def main(resource_dir, combination_dir, dataset_img_number):
@@ -37,7 +41,8 @@ def main(resource_dir, combination_dir, dataset_img_number):
     dir_list = os.listdir(resource_dir)
     dir_num = len(dir_list)
     
-    #各フォルダから選ぶ画像数を計算、ADDがあるからフォルダ数-1で割る
+    #事前に枚数が極端に少ないフォルダ内容をADDに移動
+    #各フォルダから選ぶ画像数を計算、ADDがあるから、フォルダ数-1で割る
     select_img_num = dataset_img_number // (dir_num - 1)
     img_sum_num = 0
     
@@ -71,6 +76,10 @@ def main(resource_dir, combination_dir, dataset_img_number):
     img_diff_num = dataset_img_number - img_sum_num
     if img_diff_num > 0:
         file_list = glob.glob(os.path.join(resource_dir, "ADD", '*.' + IMAGE_FILE_EXT))
+        #もしADDフォルダのファイル数が足りなければ、エラーを上げて終了
+        if img_diff_num > len(file_list):
+            raise OSError(2, "Number of files is not enough", str(os.path.join(resource_dir, "ADD")))
+        
         selected_files = rd.sample(file_list, img_diff_num)
         for j in range(img_diff_num):
             #JPGファイルのコピー
@@ -96,7 +105,7 @@ if __name__ == "__main__":
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--resource_dir', help='Directory of resource files', default='resource', type=str)
     parser.add_argument('--combination_dir', help='Directory of combination files', default='allData', type=str)
-    parser.add_argument('--dataset_img_number', help='File Number of Dataset ', default=50, type=int)
+    parser.add_argument('--dataset_img_number', help='File Number of Dataset ', default=100, type=int)
     
     args = parser.parse_args()
     

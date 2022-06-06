@@ -7,14 +7,17 @@ import os
 import sys
 import random as rd
 
-IMAGE_FILE_EXT = "JPG"
+#模擬袋
+#IMAGE_FILE_EXT = "JPG"
+#原田智之さんデータ
+IMAGE_FILE_EXT = "bmp"
 JSON_FILE_EXT = "json"
 
 #振分け比率80:20
 RATIO_TRAIN = 80
 
 #シャッフル回数:ランダムのぐらい
-SHUFFLE_TIMES = 10
+SHUFFLE_TIMES = 20
 
 
 def main(allData_dir, selected_dir):

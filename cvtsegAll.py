@@ -1,8 +1,5 @@
-#カラー画像をグレースケール化
-#コマンドラインで指定↓
-#カラーファイルディレクトリ:input_dir(デフォルト:coco)
-#グレースケールファイルディレクトリ:output_dir(デフォルト：coco_gray)
-#アルゴリズム：cvtcolor(ディフォルト、コマンドラインで指定なしの場合)かdecolor(コマンドラインで--decolor)
+#元のjsonファイル名→orgに変換
+#orgをrbox或いはbboxツールで変換
 
 import os
 import shutil
@@ -10,7 +7,7 @@ import cv2
 
 from pathlib import Path
 
-IMAGE_FILE_EXT = "bmp"
+IMAGE_FILE_EXT = "JPG"
 #JSON_FILE_EXT = "json"
 
 def check_dir(input_dir):
@@ -29,18 +26,7 @@ def check_dir(input_dir):
         if not path_name.exists():
             raise OSError(2, "No such directory", str(path_name))
         
-def main(input_dir, output_dir, algorithm):
-    """変換メイン
-    Args:
-        input_dir(string): 変換前カラー画像のディフォルト
-        output_dir(string): 変換後グレースケール画像のディフォルト
-        algorithm(string): アルゴリズムcvtcolor(ディフォルト)かdecolor
 
-    Raises:
-        FileExistsError: 出力先ディレクトリが既に存在した場合に生じます
-    """
-    
-    #inputカラー画像ディフォルトの存在チェック
     check_dir(input_dir)
     
     dir_list = [ "train", "test" ]    
