@@ -57,7 +57,8 @@ def main(dir, csvfile):
                     val_start = line_str.rfind("=") + 2
 
                     #df.at[i, col] = round(line_str[val_start:0],2)
-                    df.at[i, col] = line_str[val_start:].strip()
+                    #df.at[i, col] = line_str[val_start:].strip()
+                    df.at[i, col] = float(line_str[val_start:].strip()) * 100
 
         df.at[i,"filename"] = file_name_list[i].replace(".txt", "")
             
