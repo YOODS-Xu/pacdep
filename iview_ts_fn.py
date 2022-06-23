@@ -48,14 +48,14 @@ def show_result(image, dstsize, pred_boxes, scores, pred_classes, pred_masks, sc
         mskim = cv2.drawContours(mskim, contours, -1, tuple(color), thickness = -1)
 
         # score値を描画する
-        scrstr = 'score: {:.4f}'.format(scores[n])
+        scrstr = '{:.4f}'.format(scores[n])
         
         fontFace = cv2.FONT_HERSHEY_SIMPLEX
         fontScale = 0.8
         thickness = 2
         textsize, baseline = cv2.getTextSize(scrstr, fontFace, fontScale, thickness)
 
-        image = cv2.putText(image, scrstr, (x + (w - textsize[0]) // 2, y + h//2), fontFace, fontScale, (0, 0, 0), thickness=thickness)
+        image = cv2.putText(image, scrstr, (x + (w - textsize[0]) // 2, y + h//2), fontFace, fontScale, (0, 0, 255), thickness=thickness)
         
 
     alpha = 0.5
