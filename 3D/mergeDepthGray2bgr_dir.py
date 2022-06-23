@@ -40,6 +40,13 @@ def merge(bArray, gArray, rArray):
 
 def main(srcDir, dstDir, depthBGRtype):
 
+    if depthBGRtype != "b" and depthBGRtype != "g" and depthBGRtype != "r" \
+        and depthBGRtype != "bg" and depthBGRtype != "br" and depthBGRtype != "gr":
+
+        print(depthBGRtype, " is not a correct depthBGRtype")
+        print("depthBGRtype should be one of b, g, r, bg, br or gr")
+        return
+
     #check 変換前画像ディレクトリ
     check_path(srcDir)
 
@@ -75,10 +82,23 @@ def main(srcDir, dstDir, depthBGRtype):
             bgr_img = merge(depth_r, gray_r, gray_r)
         elif depthBGRtype == "g":
             #b:gray g:depth r:gray
-            rgb_img = merge(gray_r, depth_r, gray_r)
-        else:
+            bgr_img = merge(gray_r, depth_r, gray_r)
+        elif depthBGRtype == "r":
             #b:gray g:gray r:depth
-            rgb_img = merge(gray_r, gray_r, depth_r)
+            bgr_img = merge(gray_r, gray_r, depth_r)
+        elif depthBGRtype == "bg":
+            #b:depth g:depth r:gray
+            bgr_img = merge(depth_r, depth_r, gray_r)
+        elif depthBGRtype == "br":
+            #b:depth g:gray r:depth
+            bgr_img = merge(depth_r, gray_r, depth_r)
+        elif depthBGRtype == "gr":
+            #b:depth g:gray r:depth
+            bgr_img = merge(gray_r, depth_r, depth_r)
+        else:
+            print(depthBGRtype, " is not a correct depthBGRtype")
+            print("depthBGRtype should be one of b, g, r, bg, br or gr")
+            return
 
         #マージ後ファイルのパスを作成:bmpのまま
         dst_path = str(Path(dstDir).joinpath(MERGED_FILE_PREFIX + gray_fname[len(GRAY_FILE_PREFIX):]))
@@ -94,7 +114,7 @@ if __name__ == "__main__":
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--srcDir', help='directory of source depth & gray bmp file', default='Depth+Gray', type=str)   
     parser.add_argument('--dstDir', help='directory of destination bgr bmp file', default='MergedBGR', type=str)
-    parser.add_argument('--depthBGRtype', help='use depth as b, g or r', default='b', type=str)
+    parser.add_argument('--depthBGRtype', help='use depth as b, g, r, bg, br or gr', default='b', type=str)
     
     args = parser.parse_args()
     
