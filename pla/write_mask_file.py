@@ -41,15 +41,6 @@ def write_msk_ply(src_ply_dir, dst_ply_dir, src_fn, image, dstsize, pred_boxes, 
     src_pc = src_plydata['vertex'].data
     
     dtype = [('x', 'f'), ('y', 'f'), ('z', 'f'), ('red', 'uint8'), ('green', 'uint8'), ('blue', 'uint8')]
-    src_pc_array_x = np.array(src_plydata['vertex'].data["x"])
-    src_pc_array_y = np.array(src_plydata['vertex'].data["y"])
-    src_pc_array_z = np.array(src_plydata['vertex'].data["z"])
-   
-    src_pc_array_red = np.array(src_plydata['vertex'].data["red"])
-    src_pc_array_green = np.array(src_plydata['vertex'].data["green"])
-    src_pc_array_blue = np.array(src_plydata['vertex'].data["blue"])
-    
-   
 
     for n in reversed(range(len(scores))):
    
@@ -70,9 +61,13 @@ def write_msk_ply(src_ply_dir, dst_ply_dir, src_fn, image, dstsize, pred_boxes, 
         mask = (mask * 255).astype(np.uint8)    # [0, 1]範囲から[0, 255]へ
 
         # しきい値処理
-        _, mask = cv2.threshold(mask, 128, 1, cv2.THRESH_BINARY)
+        _, mask = cv2.threshold(mask, 128, 255, cv2.THRESH_BINARY)
 
-        #msk_plydata = PlyData()
+        # アウトラインを取得
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        # 領域を塗りつぶす
+        mask = cv2.drawContours(mask, contours, -1, 1, -1)
 
         sum_mask_points = np.sum(mask)
         
@@ -83,7 +78,6 @@ def write_msk_ply(src_ply_dir, dst_ply_dir, src_fn, image, dstsize, pred_boxes, 
             for i_h in range(h):
                 if mask[i_h, i_w] == 1:
                     position = (i_h + y) * 1280 + i_w + x
-                    print("i_h:", i_h, " i_w:", i_w, " position:", position)
                     msk_points[count_points] = src_plydata['vertex'].data[position]
                     count_points +=1
                     
@@ -186,6 +180,7 @@ def show_result(image, dstsize, pred_boxes, scores, pred_classes, pred_masks, sc
     # yoods-dnnで実行する場合はこちら
     #cv2.imshow("image", image)
     #cv2.waitKey(0)
+    #cv2.destroyAllWindows()
 
 
 def adjust_size(orgsize, maximum_size = 1024):
