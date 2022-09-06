@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import sys
+sys.path.append("/home/pacdep/.venv/lib/python3.8/site-packages")
+
 import os
 import glob
 import numpy as np
@@ -121,6 +124,7 @@ def write_msk_img(src_fn, image, dstsize, pred_boxes, scores, pred_classes, pred
         mask = cv2.resize(pred_masks[n].reshape(28, 28), (w, h))        
         mask = (mask * 255).astype(np.uint8)    # [0, 1]範囲から[0, 255]へ
 
+
         # しきい値処理
         _, mask = cv2.threshold(mask, 128, 255, cv2.THRESH_BINARY)
 
@@ -141,6 +145,7 @@ def show_result(image, dstsize, pred_boxes, scores, pred_classes, pred_masks, sc
 
     mskim = np.zeros(image.shape, dtype=np.uint8)
     cmap = pltcmap.get_cmap("tab20")
+    
     for n in reversed(range(len(scores))):
         if scores[n] < score_thr:
             continue
@@ -155,32 +160,77 @@ def show_result(image, dstsize, pred_boxes, scores, pred_classes, pred_masks, sc
         w = math.ceil(x1 - x0)  # boxサイズ
         h = math.ceil(y1 - y0)
 
+        # draw bounding box
+        image = cv2.rectangle(image, [x, y], [x+w, y+h], tuple(color), thickness=3)
+        #cv2.imshow(f"pred boxe:{n}", image)
+        #cv2.waitKey(0)
+
         # マスク画像(28x28)を画像に対応した大きさに拡大
-        mask = cv2.resize(pred_masks[n].reshape(28, 28), (w, h))        
+        mask = cv2.resize(pred_masks[n].reshape(28, 28), (w, h))       
         mask = (mask * 255).astype(np.uint8)    # [0, 1]範囲から[0, 255]へ
+        #cv2.imshow("mask", mask)
+        #cv2.waitKey(0)
 
-        # しきい値処理
-        _, mask = cv2.threshold(mask, 128, 255, cv2.THRESH_BINARY)
+        # しきい値処理 Mask R-cnn recommend 128, but Yajima ring should be smaller
+        _, mask = cv2.threshold(mask, 80, 255, cv2.THRESH_BINARY)
+        #cv2.imshow("mask", mask)
+        #cv2.waitKey(0)
 
-        # アウトラインを描画
+        # set color to maskim according mask info
+        for i_h in range(h):
+            for i_w in range(w):
+                if mask[i_h][i_w] == 255:
+                    mskim[i_h + y][i_w + x] = color
+
+        #cv2.imshow("mskim", mskim)
+        #cv2.waitKey(0)
+
+        """# アウトラインを描画 according contours info
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE, offset=(x, y))
         image = cv2.drawContours(image, contours, -1, tuple(color), thickness = 2)
 
         # 領域を塗りつぶす
-        mskim = cv2.drawContours(mskim, contours, -1, tuple(color), thickness = -1)
+        mskim = cv2.drawContours(mskim, contours, -1, tuple(color), thickness = -1)"""
+        
+        """# get contours
+        contours, hierarchy = cv2.findContours(mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE, offset=(x, y))
+        
+        # fill outter contours
+        for i_contours in range(len(contours)):
+            if hierarchy[0][i_contours][3] == -1:
+                # draw outer contour
+                image = cv2.drawContours(image, contours, i_contours, tuple(color), thickness = 2)
+                cv2.imshow(f"out contour:{i_contours}", image)
+                cv2.waitKey(0)
+                # fill region
+                #mskim = cv2.drawContours(mskim, contours, i_contours, tuple(color), thickness = -1)
+        
+        # reset inner contours(fill by (0, 0, 0))
+        for i_contours in range(len(contours)):
+            if hierarchy[0][i_contours][3] != -1:      
+                # draw inner contours
+                image = cv2.drawContours(image, contours, -1, tuple(color), thickness = 2)
+                cv2.imshow(f"inner contour:{i_contours}", image)
+                cv2.waitKey(0)
+                # reset inner regions
+                #mskim = cv2.drawContours(mskim, contours, -1, (0, 0, 0), thickness = -1)
 
+    cv2.imshow("mask", mskim)
+    cv2.waitKey(0)"""
+
+    
 
     alpha = 0.5
     image = (alpha * image.astype(float) + (1.0 - alpha) * mskim.astype(float)).astype(np.uint8)
 
-    # windowsで実行する場合はこちら
+    """# windowsで実行する場合はこちら
     plt.imshow(image)
-    plt.show()
+    plt.show()"""
 
     # yoods-dnnで実行する場合はこちら
-    #cv2.imshow("image", image)
-    #cv2.waitKey(0)
-    #cv2.destroyAllWindows()
+    cv2.imshow("image", image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 
 def adjust_size(orgsize, maximum_size = 1024):
@@ -211,9 +261,10 @@ def main(output_type, ts_filename, target, score_thr, src_ply_dir, dst_ply_dir, 
         imfilenames = glob.glob('{}/*'.format(target)) 
     else:
         raise RuntimeError('target dir or file ({}) not found'.format(target))
-
-    # check & make dst ply dir
-    os.makedirs(dst_ply_dir, exist_ok=False)
+    
+    if output_type == 1:
+        # check & make dst ply dir
+        os.makedirs(dst_ply_dir, exist_ok=False)
 
     # 一枚ずつ読み込み＆推論
     for file in imfilenames:
@@ -235,9 +286,7 @@ def main(output_type, ts_filename, target, score_thr, src_ply_dir, dst_ply_dir, 
         pred_classes = outputs[1].detach().cpu().numpy()                
         pred_masks = outputs[2].detach().cpu().numpy()
         scores = outputs[3].detach().cpu().numpy()
-
         
-
         if output_type == 1:
             #write mask ply file
             write_msk_ply(src_ply_dir, dst_ply_dir, file, image, size, pred_boxes, scores, pred_classes, pred_masks, score_thr)
@@ -261,8 +310,8 @@ if __name__ == '__main__':
     parser.add_argument('target', help='推論対象の画像or画像が格納されているディレクトリ名')
     parser.add_argument('--src_ply_dir', help="元のply file", default="exp_data/ply/src")
     parser.add_argument('--dst_ply_dir', help="mask ply fileの書込み先", default="exp_data/ply/dst")
-    parser.add_argument("--output_type", help="出力がply file(1)かimg file(2)か画面に表示(3)", default=1, type=int)
-    args = parser.parse_args()
+    parser.add_argument("--output_type", help="出力がply file(1)かimg file(2)か画面に表示(3)", default=3, type=int)
+    args = parser.parse_args(['output_backup/output_22.07.14_yajima_ring_preExp_augmentation_added_inner_train1600_Anchor16_max300/model.ts', 'sample_data/yajima_ring/preExp/org/added_inner/org/test/JPEGImages'])
 
     try:
         main(**(vars(args)))
