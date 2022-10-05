@@ -116,14 +116,6 @@ def fine_registration(source, target, init_rt = None, distance_threshold = 1.0):
         source, target, distance_threshold, init_rt,
         o3d.pipelines.registration.TransformationEstimationPointToPlane())
     
-    # do next 30(default) icp if fitness is smaller than 0.5
-    """if result.fitness < 0.5:
-        init_rt = result.transformation
-        result = o3d.pipelines.registration.registration_icp(
-        source, target, distance_threshold, init_rt,
-        o3d.pipelines.registration.TransformationEstimationPointToPlane())"""
-    
-
     logger.info(f"  {result}")
         
     return result
@@ -165,11 +157,7 @@ def load_and_rm_noise(filename, nb_neighbors = 30, std_ratio = 3.0):
     # 読み込み
     #cloud_remove_nan = o3d.io.read_point_cloud(filename, remove_nan_points=True)
     cloud = o3d.io.read_point_cloud(filename, remove_nan_points=False)
-    """if cloud_remove_nan != cloud:
-        print(cloud)
-        o3d.visualization.draw_geometries([cloud], window_name=f"{os.path.basename(filename)}:befor remove nan")
-        print(cloud_remove_nan)
-        o3d.visualization.draw_geometries([cloud_remove_nan], window_name=f"{os.path.basename(filename)}:after remove nan")"""
+    
     if not cloud.has_points():
         logger.error("{} : file read error.".format(filename))
         return o3d.geometry.PointCloud()
@@ -202,7 +190,6 @@ def load_only(filename):
         return o3d.geometry.PointCloud()
 
     logger.info("read point cloud from {}.".format(filename))
-
     
     return(cloud)
     
@@ -222,8 +209,6 @@ def draw_registration_result(source, target, result, fn):
     trg.paint_uniform_color([1, 0.705, 0])      # targetは黄色
     src.paint_uniform_color([0, 0.651, 0.929])  # sourceは青色
     src.transform(result.transformation)
-    #o3d.visualization.draw_geometries([src])
-    #o3d.visualization.draw_geometries([trg])
     
     str_message = f"ファイル名:{os.path.basename(fn)} {result}"
     o3d.visualization.draw_geometries([src, trg], window_name=str_message, width=1920, height=1080)
@@ -262,7 +247,7 @@ def estimate_score(RT):
 
     score = 0.5 * score_pitch_yaw + 0.5 * score_height
     
-    logger.info(f"score_yaw_pitch:{score_pitch_yaw}\tscore_height:{score_height}")
+    print(f"score_pitch_yaw:{score_pitch_yaw}\tscore_height:{score_height}")
     
     return(score)
 
@@ -310,8 +295,8 @@ if __name__ == '__main__':
     import quaternion
 
     parser = argparse.ArgumentParser(
-        description='点群masterを基準として点群maskの位置合わせをして、and choice optimal work list',
-        epilog='位置合わせ結果を描画し、標準出力にRTを表示します.',
+        description='点群masterを基準として点群maskの位置合わせをして、and evalute the mask using the RT(transformation matrix)',
+        epilog='位置合わせ結果を描画し、標準出力にscoreを表示します.',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         add_help=True
         )
