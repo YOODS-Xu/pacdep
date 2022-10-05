@@ -174,7 +174,7 @@ def main(ts_filename, target, score_thr, src_ply_dir, dst_ply_dir, **kwargs):
 if __name__ == '__main__':
     import argparse
 
-    parser = argparse.ArgumentParser(description='torch script化されたモデルを読み込んで推論を行います', add_help=True)
+    parser = argparse.ArgumentParser(description='analyze scene ply to masks ply according masks from 2D pictures using torch script model', add_help=True)
     parser.add_argument('ts_filename', help='torch scriptファイル名')
     parser.add_argument('--score_thr', help='スコアしきい値.この値よりも低い結果は表示されません.', default=0.7, type=float)
     parser.add_argument('--anno_file', help='アノテーションファイル名. 指定するとカテゴリ名が表示されます.')
@@ -184,7 +184,7 @@ if __name__ == '__main__':
     
     args = parser.parse_args()
     
-    # server debug
+    # debug
     #args = parser.parse_args(['output_backup/output_22.07.14_yajima_ring_preExp_augmentation_added_inner_train1600_Anchor16_max300/model.ts', 'sample_data/yajima_ring/preExp/org/added_inner/org/test/JPEGImages'])
 
     try:
